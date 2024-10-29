@@ -11,9 +11,9 @@ cd rabbitmq-getting-started
 git checkout nextjs
 ```
 ```
-mv .env.example .env.local // or mv .env.example .env.production
+mv .env.example .env.local 
 ```
-- set ENVs on `.env.local` or `.env.production`
+- set ENVs on `.env.local`
 ```
 npm i
 ```
