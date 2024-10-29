@@ -1,44 +1,46 @@
+using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+var rabbitConfig = builder.Configuration.GetSection("RabbitMQ");
+
+string host = rabbitConfig["Host"];
+int port = int.Parse(rabbitConfig["Port"]);
+string user = rabbitConfig["User"];
+string pass = rabbitConfig["Pass"];
+
+bool CheckRabbitMQConnection()
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    try
+    {
+        var factory = new ConnectionFactory()
+        {
+            HostName = host,
+            Port = port,
+            UserName = user,
+            Password = pass
+        };
+
+        using var connection = factory.CreateConnection();
+        using var channel = connection.CreateModel();
+
+        Console.WriteLine("connection successful");
+        return true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"connection failed, error: {ex.Message}");
+        return false;
+    }
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+app.MapGet("/test-rabbitmq", () =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    bool isConnected = CheckRabbitMQConnection();
+    return isConnected ? Results.Ok("connection successful") : Results.Problem("connection failed");
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
