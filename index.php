@@ -4,10 +4,9 @@ require 'vendor/autoload.php';
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
-// for local development, uncomment if needed
-// use Dotenv\Dotenv;
-// $dotenv = Dotenv::createImmutable(__DIR__);
-// $dotenv->load();
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
 
 $host = $_ENV['RABBITMQ_HOST'];
 $port = (int) $_ENV['RABBITMQ_PORT'];
